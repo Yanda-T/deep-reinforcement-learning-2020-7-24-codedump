@@ -75,7 +75,7 @@ class Agent():
     def reset(self):
         self.noise.reset()
 
-    def learn(self, experiences, gamma):
+    def learn(self, experiences, gamma): # 更新顺序见论文~~
         """Update policy and value parameters using given batch of experience tuples.
         Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
         where:
@@ -106,7 +106,7 @@ class Agent():
         # ---------------------------- update actor ---------------------------- #
         # Compute actor loss
         actions_pred = self.actor_local(states)
-        actor_loss = -self.critic_local(states, actions_pred).mean()
+        actor_loss = -self.critic_local(states, actions_pred).mean() # 调整参数，最大化给定action下的收益
         # Minimize the loss
         self.actor_optimizer.zero_grad()
         actor_loss.backward()

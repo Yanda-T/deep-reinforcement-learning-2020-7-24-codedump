@@ -29,7 +29,7 @@ class Actor(nn.Module):
         self.fc3 = nn.Linear(fc2_units, action_size)
         self.reset_parameters()
 
-    def reset_parameters(self):
+    def reset_parameters(self): # 这是啥奇葩初始化参数方式？？
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
@@ -38,7 +38,7 @@ class Actor(nn.Module):
         """Build an actor (policy) network that maps states -> actions."""
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
-        return F.tanh(self.fc3(x))
+        return F.tanh(self.fc3(x)) # action_space = [-2,2] 这个约束了可能的动作空间？
 
 
 class Critic(nn.Module):
@@ -66,7 +66,7 @@ class Critic(nn.Module):
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
-    def forward(self, state, action):
+    def forward(self, state, action): # 注意数据流向
         """Build a critic (value) network that maps (state, action) pairs -> Q-values."""
         xs = F.relu(self.fcs1(state))
         x = torch.cat((xs, action), dim=1)

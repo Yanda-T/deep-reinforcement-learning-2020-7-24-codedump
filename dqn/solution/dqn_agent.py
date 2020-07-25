@@ -43,7 +43,7 @@ class Agent():
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
     
-    def step(self, state, action, reward, next_state, done):
+    def step(self, state, action, reward, next_state, done): # 每次存储一个experience;每UPDATE_EVERY 次更新一个local-Q-network参数，并更新一次target-Q-network参数
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)
         
@@ -64,7 +64,7 @@ class Agent():
             eps (float): epsilon, for epsilon-greedy action selection
         """
         state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        self.qnetwork_local.eval()
+        self.qnetwork_local.eval()  # set network in evaluation mode; 避免估值对网络梯度产生影响
         with torch.no_grad():
             action_values = self.qnetwork_local(state)
         self.qnetwork_local.train()
@@ -75,7 +75,7 @@ class Agent():
         else:
             return random.choice(np.arange(self.action_size))
 
-    def learn(self, experiences, gamma):
+    def learn(self, experiences, gamma): # 更新 local Q-network
         """Update value parameters using given batch of experience tuples.
 
         Params
@@ -88,17 +88,17 @@ class Agent():
         # Get max predicted Q values (for next states) from target model
         Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
         # Compute Q targets for current states 
-        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
+        Q_targets = rewards + (gamma * Q_targets_next * (1 - dones)) # 如果episode结束，那么就不计算Q了？
 
         # Get expected Q values from local model
-        Q_expected = self.qnetwork_local(states).gather(1, actions)
+        Q_expected = self.qnetwork_local(states).gather(1, actions) # 这是什么语法？
 
         # Compute loss
         loss = F.mse_loss(Q_expected, Q_targets)
         # Minimize the loss
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+        self.optimizer.zero_grad() # 清零变量所含的梯度信息；重新计算前必须
+        loss.backward() # 梯度信息存储在variable中
+        self.optimizer.step() # 梯度下降一步
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
@@ -113,7 +113,7 @@ class Agent():
             target_model (PyTorch model): weights will be copied to
             tau (float): interpolation parameter 
         """
-        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
+        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()): # zip 需要迭代器支持？
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
 
